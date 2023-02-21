@@ -6,19 +6,21 @@ import {
   Text,
   View,
   Image,
-  TouchableHighlight,
+  TouchableHighlight,ActivityIndicator
 } from "react-native";
+import * as Speech from 'expo-speech';
 
 import Voice, {
   SpeechRecognizedEvent,
   SpeechResultsEvent,
   SpeechErrorEvent,
 } from "@react-native-voice/voice";
-import { Easing } from "react-native-reanimated";
+import { Easing, Value } from "react-native-reanimated";
 
 type Props = {
   onSpeechStart: () => void;
   onSpeechEnd: (result: any[]) => void;
+  animating:boolean
 };
 type State = {
   recognized: string;
@@ -28,6 +30,7 @@ type State = {
   started: boolean;
   results: string[];
   partialResults: string[];
+  animating:boolean
 };
 
 class Record extends Component<Props, State> {
@@ -39,6 +42,7 @@ class Record extends Component<Props, State> {
     started: false,
     results: [],
     partialResults: [],
+    animating:false
   };
 
   constructor(props: Props) {
@@ -55,6 +59,14 @@ class Record extends Component<Props, State> {
   componentWillUnmount() {
     Voice.destroy().then(Voice.removeAllListeners);
   }
+  componentDidMount(): void {
+
+    // this._startRecognizing()
+  }
+
+  // componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any): void {
+  //     prevProps.
+  // }
 
   onSpeechStart = (e: any) => {
     console.log("onSpeechStart: ", e);
@@ -75,9 +87,10 @@ class Record extends Component<Props, State> {
     this.setState({
       end: "√",
       started: false,
+      animating:true
     });
 
-    this.props.onSpeechEnd(this.state.results);
+    // this.props.onSpeechEnd(this.state.results);
   };
 
   onSpeechError = (e: SpeechErrorEvent) => {
@@ -85,13 +98,57 @@ class Record extends Component<Props, State> {
     this.setState({
       error: JSON.stringify(e.error),
     });
-  };
 
+    // this._startRecognizing()
+  };
+ 
   onSpeechResults = (e: SpeechResultsEvent) => {
-    console.log("onSpeechResults: ", e);
+  //   const triggerWords=["hey alli","connect","what's up alli","Alli","hi","hey ali","what's up alli","whatsapp",'ali','what','up',"what's",'alli','ally']
+
+  //   console.log("onSpeechResults: ", e);
+  //     // getWave(value[0])
+  //     console.log("test"+e.value!)
+  //     const date = Date.now();
+  // let currentDate = null;
+
+  //     do {
+  //       currentDate = Date.now();
+  //     } while (currentDate - date < 1000);
+  //       let end=false
+  //     for (let text of triggerWords){
+  //       for (let value of e.value!){
+  //         console.log("test"+  text, value)
+
+  //         if(text.includes(value.toLowerCase())){
+  //           console.log("if"+  text, value)
+
+  //           Speech.speak("hi boss , how are you ?");
+  //           this.props.onSpeechEnd(["hi boss , how are you ?"])
+  //           this._destroyRecognizer()
+  //           end=true
+  //           break
+            
+    
+            
+  //         }
+  //       }
+
+  //       if(end){
+  //         break
+  //       }
+  //     }
+      
+  //     this._startRecognizing()
+
+
+    this.props.onSpeechEnd(e.value!)
+       
+     
     this.setState({
       results: e.value!,
     });
+
+
   };
 
   onSpeechPartialResults = (e: SpeechResultsEvent) => {
@@ -100,6 +157,9 @@ class Record extends Component<Props, State> {
       partialResults: e.value!,
       results:e.value!
     });
+
+    // this.props.onSpeechEnd( e.value!);
+
   };
 
   onSpeechVolumeChanged = (e: any) => {
@@ -123,7 +183,7 @@ class Record extends Component<Props, State> {
     try {
       await Voice.start("en-US");
 
-      this.props.onSpeechStart();
+      // this.props.onSpeechStart();
     } catch (e) {
       console.error(e);
     }
@@ -165,6 +225,7 @@ class Record extends Component<Props, State> {
   render() {
     return (
       <View style={styles.container}>
+        
         {this.state.started ? (
           <TouchableHighlight onPress={this._stopRecognizing}>
             <View
@@ -172,7 +233,7 @@ class Record extends Component<Props, State> {
                 width: 75,
                 height: 75,
                 borderRadius: 75,
-                backgroundColor: "#6E01EF",
+                backgroundColor: "black",
                 alignItems: "center",
                 justifyContent: "center",
               }}
@@ -194,7 +255,7 @@ class Record extends Component<Props, State> {
                     key={index}
                     style={[
                       StyleSheet.absoluteFillObject,
-                      { backgroundColor: "#6E01EF", borderRadius: 75 },
+                      { backgroundColor: "black", borderRadius: 75 },
                     ]}
                   />
                 );
@@ -209,7 +270,7 @@ class Record extends Component<Props, State> {
                 width: 75,
                 height: 75,
                 borderRadius: 75,
-                backgroundColor: "#6E01EF",
+                backgroundColor: "black",
                 alignItems: "center",
                 justifyContent: "center",
               }}
@@ -218,6 +279,12 @@ class Record extends Component<Props, State> {
             </View>
           </TouchableHighlight>
         )}
+         <ActivityIndicator
+        animating={this.props.animating}
+        color="black"
+        size="large"
+        style={styles.activityIndicator}
+      />
       </View>
     );
   }
@@ -228,7 +295,9 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
   },
-  container: {},
+  container: {
+    marginTop:-150
+  },
   welcome: {
     fontSize: 20,
     textAlign: "center",
@@ -249,6 +318,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#B0171F",
     marginBottom: 1,
+  },
+  activityIndicator: {
+    alignItems: 'center',
+    height: 20,
+    top:-300
   },
 });
 
